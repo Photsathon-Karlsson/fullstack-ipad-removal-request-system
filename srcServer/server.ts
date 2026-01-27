@@ -18,13 +18,25 @@ const port = Number(process.env.PORT || 1337);
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: (origin, cb) => {
+      // allow non-browser tools (curl, server-to-server)
+      if (!origin) return cb(null, true);
+
+      const ok =
+        origin === "http://localhost:5173" ||
+        origin.endsWith(".railway.app");
+
+      if (ok) return cb(null, true);
+      return cb(new Error(`CORS blocked: ${origin}`));
+    },
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    credentials: false,
   })
 );
+
 app.use(express.json());
 
-// Root (กันหน้าเว็บว่างตอนเปิด backend ตรงๆ)
+// Root
 app.get("/", (_req, res) => {
   res
     .status(200)
@@ -51,7 +63,7 @@ app.get("/api/requests/:id", (req, res) => {
 app.post("/api/requests", (req, res) => {
   const body = req.body || {};
 
-  // validate 
+  // validate
   const ownerKey = String(body.ownerKey || "").trim();
   const serial = String(body.serial || "").trim();
   const studentName = String(body.studentName || "").trim();
@@ -67,7 +79,6 @@ app.post("/api/requests", (req, res) => {
 
   const created = createRequest(body);
 
-  // log อัตโนมัติ
   addLog({
     user: ownerKey || "unknown",
     action: "Submitted request",
@@ -85,7 +96,6 @@ app.patch("/api/requests/:id", (req, res) => {
   const updated = patchRequest(id, patch);
   if (!updated) return res.status(404).json({ ok: false, message: "Request not found" });
 
-  // log อัตโนมัติ (ถ้าส่ง user มาด้วยจะใช้ user นั้น)
   const user = String(patch.user || patch.userKey || patch.ownerKey || "staff");
   addLog({
     user,
@@ -109,5 +119,5 @@ app.post("/api/logs", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+  console.log(`Server running on port ${port}`);
 });
