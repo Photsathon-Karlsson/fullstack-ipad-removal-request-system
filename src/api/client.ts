@@ -32,7 +32,7 @@ export type RequestItem = {
   serial: string;
   reason: string;
 
-  // ✅ optional fields (กัน TS error + รองรับ backend ตอนเพิ่ม field)
+  // optional fields (กัน TS error + รองรับ backend ตอนเพิ่ม field)
   email?: string;
   phone2?: string;
   deviceModel?: string;
@@ -50,7 +50,7 @@ export function apiGetRequest(id: string) {
   return request<RequestItem>(`/api/requests/${id}`);
 }
 
-// ✅ create ใช้ Partial ได้เหมือนเดิม
+// create ใช้ Partial ได้เหมือนเดิม
 export function apiCreateRequest(payload: Partial<RequestItem>) {
   return request<{ ok: true; request: RequestItem }>("/api/requests", {
     method: "POST",
@@ -58,7 +58,7 @@ export function apiCreateRequest(payload: Partial<RequestItem>) {
   });
 }
 
-// ✅ patch: อนุญาตส่ง partial + user
+// patch: อนุญาตส่ง partial + user
 export function apiPatchRequest(id: string, payload: Partial<RequestItem> & { user?: string }) {
   return request<{ ok: true; request: RequestItem }>(`/api/requests/${id}`, {
     method: "PATCH",

@@ -1,9 +1,9 @@
-// accounts ที่ใช้ในการทดสอบ/เข้าระบบ : (Username)parent/(password)123, (Username)registrar/(password)123, (Username)it/(password)123
-// ไฟล์หลักควบคุม “ตรรกะทั้งระบบ” ของเว็บ (Login/Role/Pages/Requests/Logs) โดยใช้ localStorage เป็นฐานข้อมูลจำลอง
-// เพิ่มความ “ทนทาน” ของระบบ: กันหน้าเว็บว่าง/กัน element หาย, ตรวจว่ามี <section> สำคัญจริง, ปรับ session ให้ถูกหน้า, ค้นหาใน dashboard รวมสถานะด้วย
+// accounts ที่ใช้ในการทดสอบ/เข้าระบบ : (Username)it/(password)123
+// ไฟล์หลักควบคุม “ตรรกะทั้งระบบ” ของเว็บ (Login/Pages/Requests/Logs) โดยใช้ localStorage เป็นฐานข้อมูลจำลอง
+// เพิ่มความระบบ: กันหน้าเว็บว่าง/กัน element หาย, ตรวจว่ามี <section> สำคัญจริง, ปรับ session ให้ถูกหน้า, ค้นหาใน dashboard รวมสถานะด้วย
 
 // IMPORTANT (React/Vite):
-// - เราไม่ใช้ DOMContentLoaded แล้ว เพราะ React เป็นคน render DOM ให้
+// - ไม่ใช้ DOMContentLoaded แล้ว เพราะ React เป็นคน render DOM ให้
 // - ให้เรียก initIRRS() หลัง React render เสร็จ (ใน src/main.tsx)
 
 export function initIRRS() {
@@ -46,7 +46,7 @@ export function initIRRS() {
   // ถ้าตรวจเจอส่งซ้ำ จะเก็บ id ของคำขอเดิมไว้ เพื่อพาไปหน้า Track แล้วเลือกอัตโนมัติ
   let parentDuplicateTargetId = null;
 
-  // ===== Utils =====
+  // Utils 
   // ฟังก์ชันช่วยงานเล็กๆ เพื่อให้โค้ดหลักอ่านง่ายขึ้น
 
   // ช็อตคัตเรียก element ด้วย id
@@ -102,7 +102,7 @@ export function initIRRS() {
     return String(s || "").trim().toUpperCase().replaceAll(" ", "");
   }
 
-  // ===== Visible error (no silent blank) =====
+  // Visible error (no silent blank) 
   // ถ้ามีปัญหาร้ายแรง (เช่น page section หาย) ให้แสดง error ที่หน้า login แทนที่จะขาวโพลน
   function showFatalError(message) {
     console.error(message);
@@ -117,7 +117,7 @@ export function initIRRS() {
     }
   }
 
-  // ===== Validate required sections exist =====
+  // Validate required sections exist 
   // ตรวจว่ามี section สำคัญใน index.html จริง ไม่งั้นระบบจะสลับหน้าไม่ได้
   function validatePageIds() {
     const required = [
@@ -139,7 +139,7 @@ export function initIRRS() {
     return true;
   }
 
-  // ===== localStorage JSON =====
+  // localStorage JSON 
   // อ่าน/เขียน JSON ใน localStorage แบบกันพัง (ถ้า parse ไม่ได้ให้ fallback)
   function readJSON(key, fallback) {
     try {
@@ -155,7 +155,7 @@ export function initIRRS() {
     localStorage.setItem(key, JSON.stringify(value));
   }
 
-  // ===== Session persistence =====
+  // Session persistence 
   // เก็บ/โหลด session ลง localStorage เพื่อ “รีเฟรชแล้วไม่หลุด”
   function saveSession() {
     writeJSON(LS_SESSION, session);
@@ -200,7 +200,7 @@ export function initIRRS() {
     if (!session.role) session.lastPage = "login";
   }
 
-  // ===== Access control =====
+  // Access control 
   // กำหนดสิทธิ์การเข้าหน้าต่างๆ ตาม role
   function canAccessPage(pageName) {
     if (pageName === "login") return true;
@@ -259,7 +259,7 @@ export function initIRRS() {
     saveSession();
   }
 
-  // ===== Users =====
+  // Users
   // จัดการบัญชีผู้ใช้ใน localStorage
   function getUsers() {
     const data = readJSON(LS_USERS, []);
@@ -306,7 +306,7 @@ export function initIRRS() {
     saveUsers(users);
   }
 
-  // ===== Requests =====
+  // Requests 
   // จัดการข้อมูลคำขอทั้งหมด
   function getRequests() {
     const list = readJSON(LS_REQUESTS, []);
@@ -358,7 +358,7 @@ export function initIRRS() {
     );
   }
 
-  // ===== Activity log =====
+  // Activity log 
   // เก็บประวัติการกระทำ เช่น Submitted, Edited, Saved note, Status change, Changed password
   function getLogs() {
     return readJSON(LS_ACTIVITY, []);
@@ -370,7 +370,7 @@ export function initIRRS() {
     writeJSON(LS_ACTIVITY, logs);
   }
 
-  // ===== Role-based UI (cosmetic) =====
+  // Role-based UI (cosmetic) 
   // ซ่อน/แสดงปุ่มที่มี data-role ตาม role (เอาไว้คุม UI เฉยๆ)
   function applyRoleAccess(role) {
     document
@@ -381,7 +381,7 @@ export function initIRRS() {
       .forEach((el) => el.classList.toggle("hidden", role !== "registrar"));
   }
 
-  // ===== Top bar =====
+  // Top bar 
   // จัดการแถบบน (แสดง role + logout)
   function updateTopBar(role) {
     if (roleBadge) {
@@ -404,7 +404,7 @@ export function initIRRS() {
     if ($("loginPass")) $("loginPass").value = "";
   }
 
-  // ===== Status model =====
+  // Status model 
   // แปลง status code เป็นข้อความบน UI
   function statusText(status) {
     const map = {
@@ -432,7 +432,7 @@ export function initIRRS() {
     return String(n).padStart(6, "0");
   }
 
-  // ===== Dashboard =====
+  // Dashboard 
   // KPI + ตารางรายการคำขอของ staff
   function computeKpi(list) {
     // นับจำนวนคำขอตามสถานะ
@@ -505,7 +505,7 @@ export function initIRRS() {
       .join("");
   }
 
-  // ===== Parent =====
+  // Parent 
   // ฟังก์ชันฝั่ง Parent: latest status, timeline, track list, duplicate warning, submit/reset/navigate
 
   // อัปเดตกล่อง “Latest Status” ในหน้า Parent Form จาก request ล่าสุดของ owner นี้
@@ -685,7 +685,7 @@ export function initIRRS() {
     if ($("parentDupWarnText")) $("parentDupWarnText").textContent = "—";
   }
 
-  // ===== Staff view =====
+  // Staff view 
   // จัดการหน้า staff view: ดูรายละเอียด, note, next action, pdf buttons, transition status
   let currentViewRequestId = null;
 
@@ -816,7 +816,7 @@ export function initIRRS() {
     renderDashboard();
   }
 
-  // ===== Activity log =====
+  // Activity log 
   function renderLogTable() {
     // แสดงตาราง log พร้อมค้นหา
     const tbody = $("logTableBody");
@@ -858,7 +858,7 @@ export function initIRRS() {
       .join("");
   }
 
-  // ===== Login/Register UI helpers =====
+  // Login/Register UI helpers 
   function syncLoginRegisterRow() {
     // โชว์แถว “Register” ในหน้า login เฉพาะตอนเลือก role เป็น registrar/it (เชิง UI)
     const role = $("loginRole")?.value || "parent";
@@ -881,8 +881,8 @@ export function initIRRS() {
       .join("");
   }
 
-  // ===== Events =====
-  // โซนผูก event ทั้งหมด (ปุ่ม/อินพุต)
+  // Events 
+  // event ทั้งหมด (ปุ่ม/อินพุต)
 
   // Login
   onClick("btnLogin", () => {
@@ -1349,7 +1349,7 @@ export function initIRRS() {
     if ($("pwLastUpdated")) $("pwLastUpdated").textContent = nowText();
   });
 
-  // ===== Init =====
+  // Init 
   function init() {
     // เริ่มระบบ: ตรวจหน้า, สร้าง default user, โหลด session, สลับหน้าอัตโนมัติ
     if (!validatePageIds()) return;

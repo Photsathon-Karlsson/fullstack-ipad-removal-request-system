@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiListRequests } from "../api/client";
 
-// ===== UI types (คงแบบเดิม) =====
+// UI types  
 type Props = {
   onOpenAccounts: () => void;
   onOpenActivityLog: () => void;
@@ -11,7 +11,7 @@ type Props = {
 
 type FilterStatus = "ALL" | "Submitted" | "IT Approved";
 
-// ===== Backend shape (จาก srcServer/store.ts) =====
+// Backend shape (จาก srcServer/store.ts)  
 type ApiStatus = "submitted" | "pending_it" | "it_approved";
 
 type ApiRequestItem = {
@@ -31,7 +31,7 @@ type ApiRequestItem = {
   updatedAt: string;
 };
 
-// ===== View model สำหรับ UI ตารางเดิม =====
+// View model สำหรับ UI ตารางเดิม  
 type RemovalRequestVM = {
   id: string;
   studentName: string;

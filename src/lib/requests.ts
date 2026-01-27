@@ -57,13 +57,13 @@ export function createRequest(
 
   const list = readAll();
 
-  // ✅ prevent duplicate active request for same serial (active = Submitted)
+  // prevent duplicate active request for same serial (active = Submitted)
   const serial = norm(input.deviceSerial);
   const hasActive = list.some(
     (r) => norm(r.deviceSerial) === serial && r.status === "Submitted"
   );
   if (hasActive) {
-    throw new Error("มีคำขอที่กำลังดำเนินการ (Submitted) สำหรับ Serial นี้อยู่แล้ว");
+    throw new Error("A submitted request already exists for this serial.");
   }
 
   const req: RemovalRequest = {
@@ -82,7 +82,7 @@ export function createRequest(
 export function updateRequestStatus(id: string, nextStatus: RequestStatus) {
   const list = readAll();
   const idx = list.findIndex((r) => r.id === id);
-  if (idx === -1) throw new Error("ไม่พบ request นี้");
+  if (idx === -1) throw new Error("Request not found.");
 
   list[idx] = {
     ...list[idx],
@@ -94,11 +94,8 @@ export function updateRequestStatus(id: string, nextStatus: RequestStatus) {
   return list[idx];
 }
 
-/**
- * ✅ อัปเดตข้อมูล request (ใช้กับปุ่ม Edit)
- * - อนุญาตแก้เฉพาะตอน status = Submitted (กันข้อมูลเปลี่ยนหลังอนุมัติ)
- * - ถ้าแก้ deviceSerial จะเช็ค serial ซ้ำกับ request อื่นที่ยัง Submitted
- */
+// - อนุญาตแก้เฉพาะตอน status = Submitted (กันข้อมูลเปลี่ยนหลังอนุมัติ)
+// - ถ้าแก้ deviceSerial จะเช็ค serial ซ้ำกับ request อื่นที่ยัง Submitted
 export function updateRequest(
   id: string,
   patch: Partial<
@@ -118,22 +115,22 @@ export function updateRequest(
 ) {
   const list = readAll();
   const idx = list.findIndex((r) => r.id === id);
-  if (idx === -1) throw new Error("ไม่พบ request นี้");
+  if (idx === -1) throw new Error("Request not found.");
 
   const current = list[idx];
 
   if (current.status !== "Submitted") {
-    throw new Error("แก้ไขได้เฉพาะรายการที่ยังเป็น Submitted");
+    throw new Error("Only submitted items can be edited.");
   }
 
   const nextSerial = patch.deviceSerial ? norm(patch.deviceSerial) : norm(current.deviceSerial);
 
-  // ✅ ถ้า serial เปลี่ยน/หรือเช็คเสมอ → ห้ามซ้ำกับ Submitted อื่น
+  // ถ้า serial เปลี่ยน/หรือเช็คเสมอ → ห้ามซ้ำกับ Submitted อื่น
   const hasActive = list.some(
     (r) => r.id !== id && norm(r.deviceSerial) === nextSerial && r.status === "Submitted"
   );
   if (hasActive) {
-    throw new Error("Serial นี้มีคำขอ Submitted อยู่แล้ว (ห้ามซ้ำ)");
+    throw new Error("This serial already has a submitted request (duplicates are not allowed).");
   }
 
   const updated: RemovalRequest = {

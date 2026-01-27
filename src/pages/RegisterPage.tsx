@@ -60,7 +60,7 @@ export default function RegisterPage({ onBack }: Props) {
         </div>
       </div>
 
-      <div className="footer">© 2026 School</div>
+      <div className="footer">© 2026 School System</div>
     </div>
   );
 }

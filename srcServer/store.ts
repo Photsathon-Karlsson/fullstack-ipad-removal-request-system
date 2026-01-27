@@ -1,6 +1,4 @@
 // ใช้เก็บข้อมูลแบบ in-memory ชั่วคราว (ค่อยเปลี่ยนเป็น MySQL)
-// srcServer/store.ts
-// In-memory store (STEP 3): ใช้แทน DB ชั่วคราวก่อนเชื่อม MySQL (STEP 4)
 // เก็บ Requests + Logs + counter สำหรับออก Request ID (000001...)
 
 export type RequestStatus = "submitted" | "pending_it" | "it_approved";
@@ -13,7 +11,7 @@ export type RequestItem = {
   parentName: string;
   phone: string;
 
-  // ✅ optional fields (ของที่หายอยู่)
+  // optional fields 
   email?: string;
   phone2?: string;
 
@@ -21,7 +19,7 @@ export type RequestItem = {
   classRoom: string;
   serial: string;
 
-  // ✅ optional fields (ของที่หายอยู่)
+  // optional fields 
   deviceModel?: string;
 
   reason: string;
@@ -39,16 +37,12 @@ export type LogItem = {
   detail: string; // optional
 };
 
-// ----------------------
 // Private in-memory state
-// ----------------------
 let reqCounter = 0;
 const requests: RequestItem[] = [];
 const logs: LogItem[] = [];
 
-// ----------------------
 // Helpers
-// ----------------------
 function nowISO() {
   return new Date().toISOString();
 }
@@ -61,7 +55,7 @@ function normStr(v: any) {
   return String(v ?? "").trim();
 }
 
-// ✅ “-” ใช้แค่แสดงผล ห้ามเก็บเป็นค่าจริง
+// “-” ใช้แค่แสดงผล ห้ามเก็บเป็นค่าจริง
 function cleanOptional(v: any) {
   const s = normStr(v);
   return s === "-" ? "" : s;
@@ -102,7 +96,7 @@ export function createRequest(input: Partial<RequestItem>) {
     parentName: normStr(input.parentName),
     phone: normStr(input.phone),
 
-    // ✅ เก็บด้วย (ถ้าไม่ส่งมาก็เป็น "")
+    // เก็บด้วย (ถ้าไม่ส่งมาก็เป็น "")
     email: cleanOptional(input.email),
     phone2: cleanOptional(input.phone2),
 
@@ -110,7 +104,7 @@ export function createRequest(input: Partial<RequestItem>) {
     classRoom: normStr(input.classRoom),
     serial: normStr(input.serial),
 
-    // ✅ เก็บด้วย
+    // เก็บด้วย
     deviceModel: cleanOptional(input.deviceModel),
 
     reason: normStr(input.reason),
@@ -143,7 +137,7 @@ export function patchRequest(id: string, patch: Partial<RequestItem>) {
   if (patch.parentName !== undefined) r.parentName = normStr(patch.parentName);
   if (patch.phone !== undefined) r.phone = normStr(patch.phone);
 
-  // ✅ optional fields (อย่าทับด้วย "-" และอย่าหาย)
+  // optional fields (อย่าทับด้วย "-" และอย่าหาย)
   if (patch.email !== undefined) r.email = cleanOptional(patch.email);
   if (patch.phone2 !== undefined) r.phone2 = cleanOptional(patch.phone2);
 
@@ -151,7 +145,7 @@ export function patchRequest(id: string, patch: Partial<RequestItem>) {
   if (patch.classRoom !== undefined) r.classRoom = normStr(patch.classRoom);
   if (patch.serial !== undefined) r.serial = normStr(patch.serial);
 
-  // ✅ optional fields
+  // optional fields
   if (patch.deviceModel !== undefined) r.deviceModel = cleanOptional(patch.deviceModel);
 
   if (patch.reason !== undefined) r.reason = normStr(patch.reason);

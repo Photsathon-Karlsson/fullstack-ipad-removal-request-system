@@ -1,4 +1,3 @@
-// srcServer/server.ts
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
@@ -29,7 +28,7 @@ app.use(express.json());
 app.get("/", (_req, res) => {
   res
     .status(200)
-    .send("Backend is running ✅  Use /api/health, /api/requests, /api/logs");
+    .send("Backend is running : Use /api/health, /api/requests, /api/logs");
 });
 
 // API: Health

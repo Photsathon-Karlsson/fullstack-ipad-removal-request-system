@@ -168,7 +168,7 @@ export default function RequestDetailsPage({ requestId, currentUser, onBack }: P
         detail: "IT Approved request",
       });
 
-      setNotice({ type: "success", text: "อัปเดตสถานะเป็น IT Approved แล้ว" });
+      setNotice({ type: "success", text: "The status has been updated to IT Approved." });
 
       // Approve แล้วบังคับออกจากโหมดแก้ไขทันที
       setIsEditing(false);
@@ -184,7 +184,7 @@ export default function RequestDetailsPage({ requestId, currentUser, onBack }: P
 
     // แก้ได้เฉพาะ Submitted
     if (req.status !== "Submitted") {
-      setNotice({ type: "error", text: "แก้ไขได้เฉพาะรายการที่ยังเป็น Submitted" });
+      setNotice({ type: "error", text: "Only submitted items can be edited." });
       return;
     }
 
@@ -244,7 +244,7 @@ export default function RequestDetailsPage({ requestId, currentUser, onBack }: P
         detail: "Edited request details",
       });
 
-      setNotice({ type: "success", text: "บันทึกการแก้ไขเรียบร้อย" });
+      setNotice({ type: "success", text: "Changes saved successfully." });
       setIsEditing(false);
       setEdit(null);
     } catch (e: any) {
@@ -255,13 +255,13 @@ export default function RequestDetailsPage({ requestId, currentUser, onBack }: P
   function doPrint() {
     setNotice(null);
     if (!req) {
-      setNotice({ type: "error", text: "ไม่พบ request" });
+      setNotice({ type: "error", text: "Request not found." });
       return;
     }
 
     // ต้อง Approved ก่อน
     if (req.status !== "IT Approved") {
-      setNotice({ type: "error", text: "ต้องกด Approve ก่อน ถึงจะ Print PDF ได้" });
+      setNotice({ type: "error", text: "Approval is required before printing the PDF." });
       return;
     }
 
@@ -389,8 +389,8 @@ export default function RequestDetailsPage({ requestId, currentUser, onBack }: P
         </div>
 
         <div className="p" style={{ marginTop: 10, color: "var(--muted)" }}>
-          {isApproved ? "Approved แล้วแก้ไม่ได้" : "แก้ไขได้เฉพาะตอนสถานะเป็น Submitted"}
-          {!canPrint ? " • ต้อง Approve ก่อนถึงจะ Print PDF ได้" : ""}
+          {isApproved ? "Approved items cannot be edited." : "Editable only in Submitted status."}
+          {!canPrint ? " • Approval is required before printing the PDF." : ""}
         </div>
 
         <div className="row" style={{ marginTop: 12, justifyContent: "flex-end" }}>

@@ -43,12 +43,12 @@ export function addAccount(usernameRaw: string, passwordRaw: string) {
   const username = norm(usernameRaw);
   const password = (passwordRaw || "").trim();
 
-  if (!username || !password) throw new Error("กรอก username และ password ให้ครบ");
-  if (password.length < 4) throw new Error("Password ต้องอย่างน้อย 4 ตัวอักษร");
+  if (!username || !password) throw new Error("Enter username and password.");
+  if (password.length < 4) throw new Error("Password must be at least 4 characters");
 
   const accounts = listAccounts();
   if (accounts.some((a) => a.username === username)) {
-    throw new Error("มี username นี้แล้ว");
+    throw new Error("Username already exists.");
   }
 
   accounts.unshift({
@@ -60,11 +60,9 @@ export function addAccount(usernameRaw: string, passwordRaw: string) {
   saveAccounts(accounts);
 }
 
-/**
- * ✅ Edit account แบบง่าย (กรอกเอง ไม่ใช้ dropdown)
- * - ต้องมี oldUsername + oldPassword เพื่อยืนยันตัวตนของบัญชีที่จะถูกแก้
- * - newUsername / newPassword เป็น optional (ไม่กรอก = ไม่เปลี่ยน)
- */
+// account
+// - ต้องมี oldUsername + oldPassword เพื่อยืนยันตัวตนของบัญชีที่จะถูกแก้
+// - newUsername / newPassword เป็น optional (ไม่กรอก = ไม่เปลี่ยน)
 export function editAccount(params: {
   oldUsername: string;
   oldPassword: string;
@@ -78,16 +76,16 @@ export function editAccount(params: {
   const newPassword = (params.newPassword || "").trim();
 
   if (!oldUsername || !oldPassword) {
-    throw new Error("กรอก old username และ old password ให้ครบ");
+    throw new Error("Enter old username and password.");
   }
 
   const accounts = listAccounts();
   const idx = accounts.findIndex((a) => a.username === oldUsername);
-  if (idx === -1) throw new Error("ไม่พบบัญชี old username นี้");
+  if (idx === -1) throw new Error("Old Username not found.");
 
   // verify old password
   if (accounts[idx].password !== oldPassword) {
-    throw new Error("old password ไม่ถูกต้อง");
+    throw new Error("The old password is incorrect.");
   }
 
   // nothing to change?
@@ -95,24 +93,24 @@ export function editAccount(params: {
   const willChangePassword = !!newPassword;
 
   if (!willChangeUsername && !willChangePassword) {
-    throw new Error("ยังไม่ได้กรอกข้อมูลที่จะเปลี่ยน (new username หรือ new password)");
+    throw new Error("Please enter a new username or a new password.");
   }
 
   // validate new password
   if (willChangePassword && newPassword.length < 4) {
-    throw new Error("new password ต้องอย่างน้อย 4 ตัวอักษร");
+    throw new Error("New password must be at least 4 characters.");
   }
 
   // validate new username unique
   if (willChangeUsername) {
     if (accounts.some((a, i) => i !== idx && a.username === newUsername)) {
-      throw new Error("new username นี้ถูกใช้แล้ว");
+      throw new Error("New username already exists.");
     }
   }
 
   // protect primary account rename? (ถ้าต้องการให้เปลี่ยนได้ ลบ if นี้ออก)
   if (oldUsername === "it" && willChangeUsername) {
-    throw new Error("ไม่อนุญาตให้เปลี่ยนชื่อบัญชี it หลัก");
+    throw new Error("The main IT account name cannot be changed.");
   }
 
   const updated: ITAccount = {
@@ -135,12 +133,12 @@ export function deleteAccount(usernameRaw: string) {
   seedIfEmpty();
   const username = norm(usernameRaw);
 
-  if (!username) throw new Error("กรอก username ให้ครบ");
-  if (username === "it") throw new Error("ไม่อนุญาตให้ลบบัญชี it หลัก");
+  if (!username) throw new Error("Please enter your username.");
+  if (username === "it") throw new Error("The main IT account cannot be deleted.");
 
   const accounts = listAccounts();
   const next = accounts.filter((a) => a.username !== username);
-  if (next.length === accounts.length) throw new Error("ไม่พบบัญชีนี้");
+  if (next.length === accounts.length) throw new Error("Account not found.");
 
   saveAccounts(next);
 
@@ -156,12 +154,12 @@ export function login(usernameRaw: string, passwordRaw: string): SessionUser {
   const username = norm(usernameRaw);
   const password = (passwordRaw || "").trim();
 
-  if (!username || !password) throw new Error("กรอก username และ password ให้ครบ");
+  if (!username || !password) throw new Error("Enter username and password.");
 
   const accounts = listAccounts();
   const found = accounts.find((a) => a.username === username);
-  if (!found) throw new Error("บัญชีนี้ไม่มีสิทธิ์เข้าใช้งาน (IT only)");
-  if (found.password !== password) throw new Error("รหัสผ่านไม่ถูกต้อง");
+  if (!found) throw new Error("Access denied. IT accounts only.");
+  if (found.password !== password) throw new Error("Incorrect password.");
 
   const user: SessionUser = { username };
   localStorage.setItem(SESSION_KEY, JSON.stringify(user));

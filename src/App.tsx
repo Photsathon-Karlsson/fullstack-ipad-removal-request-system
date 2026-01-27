@@ -7,7 +7,7 @@ import AccountsPage from "./pages/AccountsPage";
 import ActivityLogPage from "./pages/ActivityLogPage";
 import FormPage from "./pages/FormPage";
 
-// ✅ ใส่ .tsx ไปเลยกันหาไฟล์ไม่เจอ
+// ใส่ .tsx กันหาไฟล์ไม่เจอ
 import RequestDetailsPage from "./pages/RequestDetailsPage.tsx";
 
 import Header from "./components/Header";
@@ -37,7 +37,7 @@ export default function App() {
     setSelectedRequestId("");
   }
 
-  // ✅ ใช้ user เป็นตัวตัดสินตรงๆ -> TS ไม่ฟ้อง null แล้ว
+  // ใช้ user เป็นตัวตัดสินว่า TS ไม่ฟ้อง null แล้ว
   if (!user) {
     return <LoginPage onLoginSuccess={(u) => setUser(u)} />;
   }

@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* ===== custom styles from old tailwind.css ===== */
+/* styles from tailwind.css */
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -41,10 +41,8 @@ textarea {
   border-color: rgb(16, 185, 129);
 }
 
-/* ===============================
-   PRINT PDF – ONE PAGE A4
-   Put this at the END of src/index.css
-   =============================== */
+/* PRINT PDF – ONE PAGE A4
+   Put this at the END of src/index.css */
 @media print {
   @page {
     size: A4;
@@ -79,7 +77,7 @@ textarea {
   .it-notes,
   textarea.it-notes,
   .it-notes-box {
-    height: 70px !important;     /* ~3 lines */
+    height: 70px !important;     /* 3 lines */
     min-height: 70px !important;
     max-height: 70px !important;
     overflow: hidden !important;

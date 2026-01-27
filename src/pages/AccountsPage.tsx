@@ -50,7 +50,7 @@ export default function AccountsPage({ onBack }: Props) {
       setNewUser("");
       setNewPass("");
       doRefresh();
-      showSuccess("เพิ่มบัญชีเรียบร้อย");
+      showSuccess("Account added.");
     } catch (e: any) {
       showError(e?.message || "Add failed");
     }
@@ -68,7 +68,7 @@ export default function AccountsPage({ onBack }: Props) {
       setOldPassword("");
       setNewPassword("");
       doRefresh();
-      showSuccess("แก้ไขบัญชีเรียบร้อย");
+      showSuccess("Account updated.");
     } catch (e: any) {
       showError(e?.message || "Edit failed");
     }
@@ -80,7 +80,7 @@ export default function AccountsPage({ onBack }: Props) {
       deleteAccount(deleteUsername);
       setDeleteUsername("");
       doRefresh();
-      showSuccess("ลบบัญชีเรียบร้อย");
+      showSuccess("Account deleted.");
     } catch (e: any) {
       showError(e?.message || "Delete failed");
     }
@@ -160,7 +160,7 @@ export default function AccountsPage({ onBack }: Props) {
         <div className="card" style={{ flex: 1, minWidth: 320 }}>
           <div className="h2">Edit Account</div>
           <div className="p" style={{ marginTop: 6 }}>
-            กรอกบัญชีเดิมเพื่อยืนยัน แล้วกรอกข้อมูลใหม่ที่ต้องการเปลี่ยน
+            Verify your current account, then enter the new details.
           </div>
 
           <div style={{ marginTop: 12 }}>
@@ -283,7 +283,7 @@ export default function AccountsPage({ onBack }: Props) {
         </div>
       </div>
 
-      <div className="footer">© 2026 Satit Bilingual School of Rangsit University (SBS)</div>
+      <div className="footer">© 2026 School System</div>
     </div>
   );
 }

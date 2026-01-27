@@ -1,6 +1,6 @@
-// accounts ที่ใช้ในการทดสอบ/เข้าระบบ : (Username)parent/(password)123, (Username)registrar/(password)123, (Username)it/(password)123)
-// ไฟล์หลักควบคุม “ตรรกะทั้งระบบ” ของเว็บ (Login/Role/Pages/Requests/Logs) โดยใช้ localStorage เป็นฐานข้อมูลจำลอง
-// เพิ่มความ “ทนทาน” ของระบบ: กันหน้าเว็บว่าง/กัน element หาย, ตรวจว่ามี <section> สำคัญจริง, ปรับ session ให้ถูกหน้า, ค้นหาใน dashboard รวมสถานะด้วย
+// accounts ที่ใช้ในการทดสอบ/เข้าระบบ : (Username)it/(password)123)
+// ไฟล์หลักควบคุม “ตรรกะทั้งระบบ” ของเว็บ (Login/Pages/Requests/Logs) โดยใช้ localStorage เป็นฐานข้อมูลจำลอง
+// เพิ่มระบบ: กันหน้าเว็บว่าง/กัน element หาย, ตรวจว่ามี <section> สำคัญจริง, ปรับ session ให้ถูกหน้า, ค้นหาใน dashboard รวมสถานะด้วย
 
 // document.addEventListener สั่งให้โค้ดด้านในเริ่มทำงาน “หลังจาก” HTML ของหน้าเว็บโหลดและสร้างเป็น DOM ครบแล้ว
 document.addEventListener("DOMContentLoaded", () => {
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ถ้าตรวจเจอส่งซ้ำ จะเก็บ id ของคำขอเดิมไว้ เพื่อพาไปหน้า Track แล้วเลือกอัตโนมัติ
   let parentDuplicateTargetId = null;
 
-  // ===== Utils =====
+  // Utils
   // ฟังก์ชันช่วยงานเล็กๆ เพื่อให้โค้ดหลักอ่านง่ายขึ้น
 
   // ช็อตคัตเรียก element ด้วย id
@@ -100,8 +100,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return String(s || "").trim().toUpperCase().replaceAll(" ", "");
   }
 
-  // ===== Visible error (no silent blank) =====
-  // ถ้ามีปัญหาร้ายแรง (เช่น page section หาย) ให้แสดง error ที่หน้า login แทนที่จะขาวโพลน
+  // Visible error (no silent blank)
+  // ถ้ามีปัญหาร้ายแรง (เช่น page section หาย) ให้แสดง error ที่หน้า login แทนที่จะขาว
   function showFatalError(message) {
     console.error(message);
     hideAllPages();
@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ===== Validate required sections exist =====
+  // Validate required sections exist 
   // ตรวจว่ามี section สำคัญใน index.html จริง ไม่งั้นระบบจะสลับหน้าไม่ได้
   function validatePageIds() {
     const required = [
@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   }
 
-  // ===== localStorage JSON =====
+  // localStorage JSON 
   // อ่าน/เขียน JSON ใน localStorage แบบกันพัง (ถ้า parse ไม่ได้ให้ fallback)
   function readJSON(key, fallback) {
     try {
@@ -149,7 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem(key, JSON.stringify(value));
   }
 
-  // ===== Session persistence =====
+  // Session persistence 
   // เก็บ/โหลด session ลง localStorage เพื่อ “รีเฟรชแล้วไม่หลุด”
   function saveSession() { writeJSON(LS_SESSION, session); }
   function loadSession() {
@@ -181,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!session.role) session.lastPage = "login";
   }
 
-  // ===== Access control =====
+  // Access control 
   // กำหนดสิทธิ์การเข้าหน้าต่างๆ ตาม role
   function canAccessPage(pageName) {
     if (pageName === "login") return true;
@@ -233,7 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
     saveSession();
   }
 
-  // ===== Users =====
+  // Users 
   // จัดการบัญชีผู้ใช้ใน localStorage
   function getUsers() {
     const data = readJSON(LS_USERS, []);
@@ -277,7 +277,7 @@ document.addEventListener("DOMContentLoaded", () => {
     saveUsers(users);
   }
 
-  // ===== Requests =====
+  // Requests 
   // จัดการข้อมูลคำขอทั้งหมด
   function getRequests() {
     const list = readJSON(LS_REQUESTS, []);
@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
-  // ===== Activity log =====
+  // Activity log 
   // เก็บประวัติการกระทำ เช่น Submitted, Edited, Saved note, Status change, Changed password
   function getLogs() { return readJSON(LS_ACTIVITY, []); }
   function addLog(entry) {
@@ -338,14 +338,14 @@ document.addEventListener("DOMContentLoaded", () => {
     writeJSON(LS_ACTIVITY, logs);
   }
 
-  // ===== Role-based UI (cosmetic) =====
+  // Role-based UI (cosmetic) 
   // ซ่อน/แสดงปุ่มที่มี data-role ตาม role (เอาไว้คุม UI เฉยๆ)
   function applyRoleAccess(role) {
     document.querySelectorAll('[data-role="it"]').forEach(el => el.classList.toggle("hidden", role !== "it"));
     document.querySelectorAll('[data-role="registrar"]').forEach(el => el.classList.toggle("hidden", role !== "registrar"));
   }
 
-  // ===== Top bar =====
+  // Top bar 
   // จัดการแถบบน (แสดง role + logout)
   function updateTopBar(role) {
     roleBadge.textContent = String(role || "").toUpperCase();
@@ -365,7 +365,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if ($("loginPass")) $("loginPass").value = "";
   }
 
-  // ===== Status model =====
+  // Status model 
   // แปลง status code เป็นข้อความบน UI
   function statusText(status) {
     const map = {
@@ -392,7 +392,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return String(n).padStart(6, "0");
   }
 
-  // ===== Dashboard =====
+  // Dashboard 
   // KPI + ตารางรายการคำขอของ staff
   function computeKpi(list) {
     // นับจำนวนคำขอตามสถานะ
@@ -461,7 +461,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }).join("");
   }
 
-  // ===== Parent =====
+  // Parent 
   // ฟังก์ชันฝั่ง Parent: latest status, timeline, track list, duplicate warning, submit/reset/navigate
 
   // อัปเดตกล่อง “Latest Status” ในหน้า Parent Form จาก request ล่าสุดของ owner นี้
@@ -620,7 +620,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $("parentDupWarnText") && ($("parentDupWarnText").textContent = "—");
   }
 
-  // ===== Staff view =====
+  // Staff view 
   // จัดการหน้า staff view: ดูรายละเอียด, note, next action, pdf buttons, transition status
   let currentViewRequestId = null;
 
@@ -738,7 +738,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderDashboard();
   }
 
-  // ===== Activity log =====
+  // Activity log 
   function renderLogTable() {
     // แสดงตาราง log พร้อมค้นหา
     const tbody = $("logTableBody");
@@ -775,7 +775,7 @@ document.addEventListener("DOMContentLoaded", () => {
     `).join("");
   }
 
-  // ===== Login/Register UI helpers =====
+  // Login/Register UI helpers 
   function syncLoginRegisterRow() {
     // โชว์แถว “Register” ในหน้า login เฉพาะตอนเลือก role เป็น registrar/it (เชิง UI)
     const role = $("loginRole")?.value || "parent";
@@ -796,7 +796,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }).join("");
   }
 
-  // ===== Events =====
+  // Events 
   // โซนผูก event ทั้งหมด (ปุ่ม/อินพุต)
 
   // Login
@@ -1264,7 +1264,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if ($("pwLastUpdated")) $("pwLastUpdated").textContent = nowText();
   });
 
-  // ===== Init =====
+  // Init 
   function init() {
     // เริ่มระบบ: ตรวจหน้า, สร้าง default user, โหลด session, สลับหน้าอัตโนมัติ
     if (!validatePageIds()) return;

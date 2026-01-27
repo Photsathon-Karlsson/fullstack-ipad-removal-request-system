@@ -25,7 +25,7 @@ export default function LoginPage({ onLoginSuccess }: Props) {
   return (
     <div style={styles.wrap}>
       <div style={styles.card}>
-        <h1 style={styles.title}>IRRS</h1>
+        <h1 style={styles.title}>iPad</h1>
         <p style={styles.subtitle}>Ipad Removal Request System</p>
 
         <form onSubmit={handleSubmit} style={styles.form}>

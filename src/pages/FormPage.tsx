@@ -67,7 +67,7 @@ export default function FormPage({ onBack, currentUser, onSubmitted }: Props) {
   async function handleSubmit() {
     setNotice(null);
 
-    // ✅ ปุ่มกดได้เสมอ แต่ถ้าขาด → ขึ้นข้อความบนหน้า
+    // ปุ่มกดได้เสมอ แต่ถ้าขาด → ขึ้นข้อความบนหน้า
     if (missing.length > 0) {
       const msg =
         missing[0] === "Email format"
@@ -80,7 +80,7 @@ export default function FormPage({ onBack, currentUser, onSubmitted }: Props) {
     try {
       setSubmitting(true);
 
-      // ✅ ส่งเข้า backend ครบทุก field ที่ใช้ใน UI
+      // ส่งเข้า backend ครบทุก field ที่ใช้ใน UI
       // backend require: ownerKey, serial, studentName, classRoom, reason
       const res = await apiCreateRequest({
         ownerKey: currentUser, // ผูกกับ user ที่ล็อกอิน
@@ -88,7 +88,7 @@ export default function FormPage({ onBack, currentUser, onSubmitted }: Props) {
         parentName: form.parentName.trim(),
         phone: form.phone1.trim(),
 
-        // ✅ เพิ่ม 3 ฟิลด์ที่เคย “หาย”
+        // เพิ่ม 3 ฟิลด์ 
         email: form.email.trim(),
         phone2: form.phone2.trim(), // optional (ส่ง "" ได้)
         deviceModel: form.deviceModel.trim(),
@@ -254,7 +254,7 @@ export default function FormPage({ onBack, currentUser, onSubmitted }: Props) {
       </div>
 
       <div className="footer">
-        © 2026 Satit Bilingual School of Rangsit University (SBS)
+        © 2026 School System
       </div>
     </div>
   );

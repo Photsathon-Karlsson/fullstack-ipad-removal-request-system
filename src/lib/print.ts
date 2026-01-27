@@ -20,7 +20,7 @@ function fmt(dtIso: string) {
 export function printRequest(req: RemovalRequest) {
   const w = window.open("", "_blank");
   if (!w) {
-    alert("Popup ถูกบล็อก (อนุญาต popups แล้วลองใหม่)");
+    alert("Pop-up blocked. Enable pop-ups and retry.");
     return;
   }
 
@@ -71,7 +71,7 @@ export function printRequest(req: RemovalRequest) {
     .full { grid-column: 1 / -1; }
     .value pre { white-space: pre-wrap; margin:0; font-family: inherit; }
 
-    /* ✅ กัน reason ยาวแล้วดันไปหน้า 2 (เอาให้อยู่หน้าเดียว) */
+    /* กัน reason ยาวแล้วดันไปหน้า 2 (เอาให้อยู่หน้าเดียว) */
     .reasonBox pre {
       max-height: 88px;           /* ปรับได้เล็ก/ใหญ่ตามต้องการ */
       overflow: hidden;

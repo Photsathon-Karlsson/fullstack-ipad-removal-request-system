@@ -73,7 +73,7 @@ export default function ActivityLogPage({ onBack }: Props) {
         </div>
       </div>
 
-      <div className="footer">© 2026 Satit Bilingual School of Rangsit University (SBS)</div>
+      <div className="footer">© 2026 School System</div>
     </div>
   );
 }
