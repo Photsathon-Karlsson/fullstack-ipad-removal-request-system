@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "rootDir": "./",
+    "outDir": "../distServer/",
+    "resolveJsonModule": true,
+    "types": ["node", "dotenv"]
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["../node_modules", "../dist", "../distServer"]
+}

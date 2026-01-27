@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+/* ===== custom styles from old tailwind.css ===== */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(15, 23, 42, 0.25);
+  outline-offset: 2px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+* {
+  scrollbar-width: thin;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.ui-error {
+  color: rgb(190, 18, 60);
+  font-size: 0.875rem;
+}
+
+.ui-success {
+  color: rgb(6, 95, 70);
+  font-size: 0.875rem;
+}
+
+.input-error {
+  border-color: rgb(244, 63, 94);
+}
+
+.input-success {
+  border-color: rgb(16, 185, 129);
+}
+
+/* ===============================
+   PRINT PDF – ONE PAGE A4
+   Put this at the END of src/index.css
+   =============================== */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  body {
+    margin: 0 !important;
+    font-size: 12px;
+    color: #000;
+  }
+
+  /* กันส่วนสำคัญแตกหน้า */
+  .pdf-root,
+  .pdf-paper,
+  .pdf-container,
+  .signatures,
+  .pdf-footer {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* ลดช่องไฟโดยรวมเพื่อให้จบในหน้าเดียว */
+  h1, h2, h3 {
+    margin: 0 0 6px 0 !important;
+  }
+  .row, .grid, .field, .form-row, .form-group {
+    margin-bottom: 6px !important;
+  }
+
+  /* IT Notes: เหลือ 3 บรรทัด */
+  .it-notes,
+  textarea.it-notes,
+  .it-notes-box {
+    height: 70px !important;     /* ~3 lines */
+    min-height: 70px !important;
+    max-height: 70px !important;
+    overflow: hidden !important;
+    resize: none !important;
+  }
+
+  /* ซ่อนปุ่ม/เมนูที่ไม่ต้องพิมพ์ */
+  button,
+  .btn,
+  .no-print,
+  nav,
+  header,
+  .topbar {
+    display: none !important;
+  }
+}
