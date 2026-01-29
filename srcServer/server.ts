@@ -1,13 +1,15 @@
-// + MySQL + Serve Frontend (Production)
+// srcServer/server.ts
+// + MySQL optional + Serve Frontend (Production) + DEV CORS safe (Express v5-safe)
 
 import "dotenv/config";
 import express from "express";
-import cors from "cors";
+import cors, { CorsOptions } from "cors";
 import mysql from "mysql2/promise";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
-// In-memory store — ใช้เป็น fallback เวลาไม่มี DATABASE_URL
+// In-memory store — fallback เวลาไม่มี DATABASE_URL
 import {
   addLog as addLogStore,
   createRequest as createRequestStore,
@@ -18,50 +20,73 @@ import {
   patchRequest as patchRequestStore,
 } from "./store.js";
 
-//Basic setup
+/** =========================
+ *  Basic setup
+ *  ========================= */
 const app = express();
 const port = Number(process.env.PORT || 1337);
 
+// ✅ DEV / PROD
+// - DEV: Vite (5173/5174) → ต้องเปิด CORS
+// - PROD: Serve frontend จาก backend (same-origin) → ไม่ต้องใช้ CORS
+const isProd = process.env.NODE_ENV === "production";
+const isDev = !isProd;
+
+app.use(express.json());
+
+/** =========================
+ *  Paths (กัน distPath หลุด)
+ *  ========================= */
 // __dirname (ESM)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-//CORS
-const allowedLocalOrigins = new Set([
-  "http://localhost:5173",
-  "http://localhost:5174",
-]);
+// ✅ project root = โฟลเดอร์เหนือ srcServer (ตอน build จะอยู่ distServer ก็ยัง .. = root)
+const projectRoot = path.resolve(__dirname, "..");
 
-app.use(
-  cors({
-    origin: (origin, cb) => {
-      // allow non-browser tools (curl, server-to-server)
+// ✅ dist frontend = <root>/dist (ไม่พึ่ง process.cwd())
+const distPath = path.resolve(projectRoot, "dist");
+const indexHtmlPath = path.join(distPath, "index.html");
+
+console.log("projectRoot =", projectRoot);
+console.log("distPath =", distPath);
+
+/** =========================
+ *  CORS (DEV ONLY)
+ *  ========================= */
+if (isDev) {
+  const allowList = new Set([
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:1337",
+  ]);
+
+  const corsOptions: CorsOptions = {
+    origin(origin, cb) {
+      // origin เป็น undefined ได้ (เช่น curl)
       if (!origin) return cb(null, true);
+      if (allowList.has(origin)) return cb(null, true);
 
-      const ok =
-        allowedLocalOrigins.has(origin) ||
-        origin.endsWith(".railway.app");
-
-      if (ok) return cb(null, true);
-      return cb(new Error(`CORS blocked: ${origin}`));
+      // ❗ ห้าม throw ไม่งั้น server log จะ spam / crash ได้
+      console.warn("[CORS] blocked origin:", origin);
+      return cb(null, false);
     },
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     credentials: false,
-  })
-);
+  };
 
-app.use(express.json());
+  app.use(cors(corsOptions));
+}
 
-//DB (MySQL) optional
-const DATABASE_URL = process.env.DATABASE_URL?.trim() || "";
+/** =========================
+ *  DB (MySQL) optional
+ *  ========================= */
+const DATABASE_URL = (process.env.DATABASE_URL || "").trim();
 const useDb = Boolean(DATABASE_URL);
-
-// pool จะถูกสร้างเฉพาะเมื่อมี DATABASE_URL
 const db = useDb ? mysql.createPool(DATABASE_URL) : null;
 
 type DbMode = "mysql" | "memory";
 
-// สร้างตาราง (ใช้ JSON เก็บ payload เพื่อไม่ต้องแตกคอลัมน์เยอะ)
 async function initDbIfNeeded() {
   if (!db) return;
 
@@ -82,7 +107,7 @@ async function initDbIfNeeded() {
   `);
 }
 
-//Helpers: DB CRUD
+// Helpers: DB CRUD
 async function dbListRequests() {
   const [rows] = await db!.query<any[]>(
     "SELECT data FROM requests ORDER BY created_at DESC"
@@ -101,12 +126,10 @@ async function dbGetRequestById(id: string) {
 
 async function dbCreateRequest(body: any) {
   const created = createRequestStore(body);
-
-  await db!.execute(
-    "INSERT INTO requests (id, data) VALUES (?, ?)",
-    [created.id, JSON.stringify(created)]
-  );
-
+  await db!.execute("INSERT INTO requests (id, data) VALUES (?, ?)", [
+    created.id,
+    JSON.stringify(created),
+  ]);
   return created;
 }
 
@@ -116,22 +139,19 @@ async function dbPatchRequest(id: string, patch: any) {
 
   const updated = { ...current, ...patch };
 
-  await db!.execute(
-    "UPDATE requests SET data = ? WHERE id = ?",
-    [JSON.stringify(updated), id]
-  );
+  await db!.execute("UPDATE requests SET data = ? WHERE id = ?", [
+    JSON.stringify(updated),
+    id,
+  ]);
 
   return updated;
 }
 
 async function dbAddLog(body: any) {
   const created = addLogStore(body);
-
-  await db!.execute(
-    "INSERT INTO logs (data) VALUES (?)",
-    [JSON.stringify(created)]
-  );
-
+  await db!.execute("INSERT INTO logs (data) VALUES (?)", [
+    JSON.stringify(created),
+  ]);
   return created;
 }
 
@@ -146,9 +166,7 @@ async function dbSnapshot() {
   const [[rCount]] = await db!.query<any[]>(
     "SELECT COUNT(*) AS n FROM requests"
   );
-  const [[lCount]] = await db!.query<any[]>(
-    "SELECT COUNT(*) AS n FROM logs"
-  );
+  const [[lCount]] = await db!.query<any[]>("SELECT COUNT(*) AS n FROM logs");
   return {
     reqCounter: null,
     requestsCount: Number(rCount?.n || 0),
@@ -158,13 +176,11 @@ async function dbSnapshot() {
   };
 }
 
-// Serve Frontend (Production)
-const distPath = path.resolve(__dirname, "../../dist");
+/** =========================
+ *  API
+ *  ========================= */
 
-// serve static assets
-app.use(express.static(distPath));
-
-//API routes
+// Health
 app.get("/api/health", async (_req, res) => {
   try {
     if (useDb) {
@@ -191,9 +207,11 @@ app.get("/api/requests", async (_req, res) => {
     if (useDb) return res.json(await dbListRequests());
     return res.json(listRequestsStore());
   } catch (err: any) {
-    return res
-      .status(500)
-      .json({ ok: false, message: "Failed to list requests", error: String(err?.message || err) });
+    return res.status(500).json({
+      ok: false,
+      message: "Failed to list requests",
+      error: String(err?.message || err),
+    });
   }
 });
 
@@ -204,9 +222,11 @@ app.get("/api/requests/:id", async (req, res) => {
     if (!r) return res.status(404).json({ ok: false, message: "Request not found" });
     return res.json(r);
   } catch (err: any) {
-    return res
-      .status(500)
-      .json({ ok: false, message: "Failed to get request", error: String(err?.message || err) });
+    return res.status(500).json({
+      ok: false,
+      message: "Failed to get request",
+      error: String(err?.message || err),
+    });
   }
 });
 
@@ -228,9 +248,7 @@ app.post("/api/requests", async (req, res) => {
       });
     }
 
-    const created = useDb
-      ? await dbCreateRequest(body)
-      : createRequestStore(body);
+    const created = useDb ? await dbCreateRequest(body) : createRequestStore(body);
 
     const logPayload = {
       user: ownerKey || "unknown",
@@ -244,9 +262,11 @@ app.post("/api/requests", async (req, res) => {
 
     return res.status(201).json({ ok: true, request: created });
   } catch (err: any) {
-    return res
-      .status(500)
-      .json({ ok: false, message: "Failed to create request", error: String(err?.message || err) });
+    return res.status(500).json({
+      ok: false,
+      message: "Failed to create request",
+      error: String(err?.message || err),
+    });
   }
 });
 
@@ -255,28 +275,22 @@ app.patch("/api/requests/:id", async (req, res) => {
     const id = String(req.params.id || "");
     const patch = req.body || {};
 
-    const updated = useDb
-      ? await dbPatchRequest(id, patch)
-      : patchRequestStore(id, patch);
-
+    const updated = useDb ? await dbPatchRequest(id, patch) : patchRequestStore(id, patch);
     if (!updated) return res.status(404).json({ ok: false, message: "Request not found" });
 
     const user = String(patch.user || patch.userKey || patch.ownerKey || "staff");
-    const logPayload = {
-      user,
-      action: "Updated request",
-      requestId: id,
-      detail: "",
-    };
+    const logPayload = { user, action: "Updated request", requestId: id, detail: "" };
 
     if (useDb) await dbAddLog(logPayload);
     else addLogStore(logPayload);
 
     return res.json({ ok: true, request: updated });
   } catch (err: any) {
-    return res
-      .status(500)
-      .json({ ok: false, message: "Failed to patch request", error: String(err?.message || err) });
+    return res.status(500).json({
+      ok: false,
+      message: "Failed to patch request",
+      error: String(err?.message || err),
+    });
   }
 });
 
@@ -286,9 +300,11 @@ app.get("/api/logs", async (_req, res) => {
     if (useDb) return res.json(await dbListLogs());
     return res.json(listLogsStore());
   } catch (err: any) {
-    return res
-      .status(500)
-      .json({ ok: false, message: "Failed to list logs", error: String(err?.message || err) });
+    return res.status(500).json({
+      ok: false,
+      message: "Failed to list logs",
+      error: String(err?.message || err),
+    });
   }
 });
 
@@ -298,18 +314,41 @@ app.post("/api/logs", async (req, res) => {
     const created = useDb ? await dbAddLog(body) : addLogStore(body);
     return res.status(201).json({ ok: true, log: created });
   } catch (err: any) {
-    return res
-      .status(500)
-      .json({ ok: false, message: "Failed to create log", error: String(err?.message || err) });
+    return res.status(500).json({
+      ok: false,
+      message: "Failed to create log",
+      error: String(err?.message || err),
+    });
   }
 });
 
-// SPA fallback (ต้องอยู่ล่างสุด)
-app.get("*", (_req, res) => {
-  res.sendFile(path.join(distPath, "index.html"));
+/** =========================
+ *  Serve Frontend (Production build)
+ *  ========================= */
+app.use(express.static(distPath));
+
+// ✅ Express v5-safe SPA fallback (ห้ามใช้ "*")
+app.get(/^(?!\/api).*/, (_req, res) => {
+  if (!fs.existsSync(indexHtmlPath)) {
+    return res.status(404).send(
+      [
+        "Frontend build not found.",
+        `Expected: ${indexHtmlPath}`,
+        "",
+        "Run:",
+        "  npm run predeploy",
+        "",
+        "Then start (production):",
+        "  NODE_ENV=production npm run start",
+      ].join("\n")
+    );
+  }
+  return res.sendFile(indexHtmlPath);
 });
 
-// Start server
+/** =========================
+ *  Start
+ *  ========================= */
 async function start() {
   if (useDb) {
     await initDbIfNeeded();
@@ -320,6 +359,7 @@ async function start() {
 
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
+    console.log(`NODE_ENV=${process.env.NODE_ENV || "(not set)"} isDev=${isDev}`);
   });
 }
 
