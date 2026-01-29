@@ -2,7 +2,7 @@
 
 import "dotenv/config";
 import express from "express";
-import cors, { CorsOptions } from "cors";
+import cors, { type CorsOptions } from "cors";
 import mysql from "mysql2/promise";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -208,7 +208,8 @@ app.get("/api/requests/:id", async (req, res) => {
   try {
     const id = String(req.params.id || "");
     const r = useDb ? await dbGetRequestById(id) : getRequestByIdStore(id);
-    if (!r) return res.status(404).json({ ok: false, message: "Request not found" });
+    if (!r)
+      return res.status(404).json({ ok: false, message: "Request not found" });
     return res.json(r);
   } catch (err: any) {
     return res.status(500).json({
@@ -264,8 +265,12 @@ app.patch("/api/requests/:id", async (req, res) => {
     const id = String(req.params.id || "");
     const patch = req.body || {};
 
-    const updated = useDb ? await dbPatchRequest(id, patch) : patchRequestStore(id, patch);
-    if (!updated) return res.status(404).json({ ok: false, message: "Request not found" });
+    const updated = useDb
+      ? await dbPatchRequest(id, patch)
+      : patchRequestStore(id, patch);
+
+    if (!updated)
+      return res.status(404).json({ ok: false, message: "Request not found" });
 
     const user = String(patch.user || patch.userKey || patch.ownerKey || "staff");
     const logPayload = { user, action: "Updated request", requestId: id, detail: "" };
@@ -312,26 +317,28 @@ app.post("/api/logs", async (req, res) => {
 });
 
 // Serve Frontend (Production build)
-app.use(express.static(distPath));
+if (isProd) {
+  app.use(express.static(distPath));
 
-// Express v5-safe SPA fallback (ห้ามใช้ "*")
-app.get(/^(?!\/api).*/, (_req, res) => {
-  if (!fs.existsSync(indexHtmlPath)) {
-    return res.status(404).send(
-      [
-        "Frontend build not found.",
-        `Expected: ${indexHtmlPath}`,
-        "",
-        "Run:",
-        "  npm run predeploy",
-        "",
-        "Then start (production):",
-        "  NODE_ENV=production npm run start",
-      ].join("\n")
-    );
-  }
-  return res.sendFile(indexHtmlPath);
-});
+  // Express v5-safe SPA fallback (ห้ามใช้ "*")
+  app.get(/^(?!\/api).*/, (_req, res) => {
+    if (!fs.existsSync(indexHtmlPath)) {
+      return res.status(404).send(
+        [
+          "Frontend build not found.",
+          `Expected: ${indexHtmlPath}`,
+          "",
+          "Run:",
+          "  npm run predeploy",
+          "",
+          "Then start (production):",
+          "  NODE_ENV=production npm run start",
+        ].join("\n")
+      );
+    }
+    return res.sendFile(indexHtmlPath);
+  });
+}
 
 // Start
 async function start() {
