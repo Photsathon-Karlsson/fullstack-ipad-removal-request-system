@@ -1,9 +1,11 @@
-// + MySQL
+// + MySQL + Serve Frontend (Production)
 
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import mysql from "mysql2/promise";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // In-memory store — ใช้เป็น fallback เวลาไม่มี DATABASE_URL
 import {
@@ -16,10 +18,15 @@ import {
   patchRequest as patchRequestStore,
 } from "./store.js";
 
+//Basic setup
 const app = express();
 const port = Number(process.env.PORT || 1337);
 
-// CORS
+// __dirname (ESM)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+//CORS
 const allowedLocalOrigins = new Set([
   "http://localhost:5173",
   "http://localhost:5174",
@@ -45,7 +52,7 @@ app.use(
 
 app.use(express.json());
 
-// DB (MySQL) optional
+//DB (MySQL) optional
 const DATABASE_URL = process.env.DATABASE_URL?.trim() || "";
 const useDb = Boolean(DATABASE_URL);
 
@@ -75,7 +82,7 @@ async function initDbIfNeeded() {
   `);
 }
 
-// Helpers: DB CRUD 
+//Helpers: DB CRUD
 async function dbListRequests() {
   const [rows] = await db!.query<any[]>(
     "SELECT data FROM requests ORDER BY created_at DESC"
@@ -93,7 +100,6 @@ async function dbGetRequestById(id: string) {
 }
 
 async function dbCreateRequest(body: any) {
-  // ให้ store.js เป็นคน generate id / status / createdAt เหมือนเดิม (กัน logic พัง)
   const created = createRequestStore(body);
 
   await db!.execute(
@@ -108,10 +114,6 @@ async function dbPatchRequest(id: string, patch: any) {
   const current = await dbGetRequestById(id);
   if (!current) return null;
 
-  // ใช้ store.js ทำการ merge + validation/status rules 
-  // โดยให้ store ให้ทำงานกับ object ปัจจุบัน
-  // เอา patch ไปใช้กับฟังก์ชันเดิมโดยเรียก patchRequestStore
-  // แต่ patchRequestStore ไปอัปเดต memory store ภายใน 
   const updated = { ...current, ...patch };
 
   await db!.execute(
@@ -123,7 +125,6 @@ async function dbPatchRequest(id: string, patch: any) {
 }
 
 async function dbAddLog(body: any) {
-  // ให้ addLogStore สร้าง id/createdAt/shape เหมือนเดิม
   const created = addLogStore(body);
 
   await db!.execute(
@@ -157,14 +158,13 @@ async function dbSnapshot() {
   };
 }
 
-// Root
-app.get("/", (_req, res) => {
-  res
-    .status(200)
-    .send("Backend is running : Use /api/health, /api/requests, /api/logs");
-});
+// Serve Frontend (Production)
+const distPath = path.resolve(__dirname, "../../dist");
 
-// API: Health
+// serve static assets
+app.use(express.static(distPath));
+
+//API routes
 app.get("/api/health", async (_req, res) => {
   try {
     if (useDb) {
@@ -185,13 +185,15 @@ app.get("/api/health", async (_req, res) => {
   }
 });
 
-// API: Requests
+// Requests
 app.get("/api/requests", async (_req, res) => {
   try {
     if (useDb) return res.json(await dbListRequests());
     return res.json(listRequestsStore());
   } catch (err: any) {
-    return res.status(500).json({ ok: false, message: "Failed to list requests", error: String(err?.message || err) });
+    return res
+      .status(500)
+      .json({ ok: false, message: "Failed to list requests", error: String(err?.message || err) });
   }
 });
 
@@ -202,7 +204,9 @@ app.get("/api/requests/:id", async (req, res) => {
     if (!r) return res.status(404).json({ ok: false, message: "Request not found" });
     return res.json(r);
   } catch (err: any) {
-    return res.status(500).json({ ok: false, message: "Failed to get request", error: String(err?.message || err) });
+    return res
+      .status(500)
+      .json({ ok: false, message: "Failed to get request", error: String(err?.message || err) });
   }
 });
 
@@ -210,7 +214,6 @@ app.post("/api/requests", async (req, res) => {
   try {
     const body = req.body || {};
 
-    // validate
     const ownerKey = String(body.ownerKey || "").trim();
     const serial = String(body.serial || "").trim();
     const studentName = String(body.studentName || "").trim();
@@ -225,7 +228,9 @@ app.post("/api/requests", async (req, res) => {
       });
     }
 
-    const created = useDb ? await dbCreateRequest(body) : createRequestStore(body);
+    const created = useDb
+      ? await dbCreateRequest(body)
+      : createRequestStore(body);
 
     const logPayload = {
       user: ownerKey || "unknown",
@@ -239,7 +244,9 @@ app.post("/api/requests", async (req, res) => {
 
     return res.status(201).json({ ok: true, request: created });
   } catch (err: any) {
-    return res.status(500).json({ ok: false, message: "Failed to create request", error: String(err?.message || err) });
+    return res
+      .status(500)
+      .json({ ok: false, message: "Failed to create request", error: String(err?.message || err) });
   }
 });
 
@@ -267,17 +274,21 @@ app.patch("/api/requests/:id", async (req, res) => {
 
     return res.json({ ok: true, request: updated });
   } catch (err: any) {
-    return res.status(500).json({ ok: false, message: "Failed to patch request", error: String(err?.message || err) });
+    return res
+      .status(500)
+      .json({ ok: false, message: "Failed to patch request", error: String(err?.message || err) });
   }
 });
 
-// API: Logs
+// Logs
 app.get("/api/logs", async (_req, res) => {
   try {
     if (useDb) return res.json(await dbListLogs());
     return res.json(listLogsStore());
   } catch (err: any) {
-    return res.status(500).json({ ok: false, message: "Failed to list logs", error: String(err?.message || err) });
+    return res
+      .status(500)
+      .json({ ok: false, message: "Failed to list logs", error: String(err?.message || err) });
   }
 });
 
@@ -287,11 +298,18 @@ app.post("/api/logs", async (req, res) => {
     const created = useDb ? await dbAddLog(body) : addLogStore(body);
     return res.status(201).json({ ok: true, log: created });
   } catch (err: any) {
-    return res.status(500).json({ ok: false, message: "Failed to create log", error: String(err?.message || err) });
+    return res
+      .status(500)
+      .json({ ok: false, message: "Failed to create log", error: String(err?.message || err) });
   }
 });
 
-// Start server (init DB first if needed)
+// SPA fallback (ต้องอยู่ล่างสุด)
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(distPath, "index.html"));
+});
+
+// Start server
 async function start() {
   if (useDb) {
     await initDbIfNeeded();
