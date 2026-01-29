@@ -1,4 +1,3 @@
-// srcServer/server.ts
 // + MySQL optional + Serve Frontend (Production) + DEV CORS safe (Express v5-safe)
 
 import "dotenv/config";
@@ -20,13 +19,11 @@ import {
   patchRequest as patchRequestStore,
 } from "./store.js";
 
-/** =========================
- *  Basic setup
- *  ========================= */
+// Basic setup
 const app = express();
 const port = Number(process.env.PORT || 1337);
 
-// ✅ DEV / PROD
+// DEV / PROD
 // - DEV: Vite (5173/5174) → ต้องเปิด CORS
 // - PROD: Serve frontend จาก backend (same-origin) → ไม่ต้องใช้ CORS
 const isProd = process.env.NODE_ENV === "production";
@@ -34,26 +31,22 @@ const isDev = !isProd;
 
 app.use(express.json());
 
-/** =========================
- *  Paths (กัน distPath หลุด)
- *  ========================= */
+// Paths (กัน distPath หลุด)
 // __dirname (ESM)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ project root = โฟลเดอร์เหนือ srcServer (ตอน build จะอยู่ distServer ก็ยัง .. = root)
+// project root = โฟลเดอร์เหนือ srcServer (ตอน build จะอยู่ distServer ก็ยัง .. = root)
 const projectRoot = path.resolve(__dirname, "..");
 
-// ✅ dist frontend = <root>/dist (ไม่พึ่ง process.cwd())
+// dist frontend = <root>/dist (ไม่พึ่ง process.cwd())
 const distPath = path.resolve(projectRoot, "dist");
 const indexHtmlPath = path.join(distPath, "index.html");
 
 console.log("projectRoot =", projectRoot);
 console.log("distPath =", distPath);
 
-/** =========================
- *  CORS (DEV ONLY)
- *  ========================= */
+// CORS (DEV ONLY)
 if (isDev) {
   const allowList = new Set([
     "http://localhost:5173",
@@ -67,7 +60,7 @@ if (isDev) {
       if (!origin) return cb(null, true);
       if (allowList.has(origin)) return cb(null, true);
 
-      // ❗ ห้าม throw ไม่งั้น server log จะ spam / crash ได้
+      // ห้าม throw ไม่งั้น server log จะ spam / crash ได้
       console.warn("[CORS] blocked origin:", origin);
       return cb(null, false);
     },
@@ -78,9 +71,7 @@ if (isDev) {
   app.use(cors(corsOptions));
 }
 
-/** =========================
- *  DB (MySQL) optional
- *  ========================= */
+// DB (MySQL) optional
 const DATABASE_URL = (process.env.DATABASE_URL || "").trim();
 const useDb = Boolean(DATABASE_URL);
 const db = useDb ? mysql.createPool(DATABASE_URL) : null;
@@ -176,9 +167,7 @@ async function dbSnapshot() {
   };
 }
 
-/** =========================
- *  API
- *  ========================= */
+// API
 
 // Health
 app.get("/api/health", async (_req, res) => {
@@ -322,12 +311,10 @@ app.post("/api/logs", async (req, res) => {
   }
 });
 
-/** =========================
- *  Serve Frontend (Production build)
- *  ========================= */
+// Serve Frontend (Production build)
 app.use(express.static(distPath));
 
-// ✅ Express v5-safe SPA fallback (ห้ามใช้ "*")
+// Express v5-safe SPA fallback (ห้ามใช้ "*")
 app.get(/^(?!\/api).*/, (_req, res) => {
   if (!fs.existsSync(indexHtmlPath)) {
     return res.status(404).send(
@@ -346,9 +333,7 @@ app.get(/^(?!\/api).*/, (_req, res) => {
   return res.sendFile(indexHtmlPath);
 });
 
-/** =========================
- *  Start
- *  ========================= */
+// Start
 async function start() {
   if (useDb) {
     await initDbIfNeeded();
