@@ -88,7 +88,7 @@ export default function FormPage({ onBack, currentUser, onSubmitted }: Props) {
         parentName: form.parentName.trim(),
         phone: form.phone1.trim(),
 
-        // เพิ่ม 3 ฟิลด์ 
+        // เพิ่ม 3 ฟิลด์
         email: form.email.trim(),
         phone2: form.phone2.trim(), // optional (ส่ง "" ได้)
         deviceModel: form.deviceModel.trim(),
@@ -158,14 +158,7 @@ export default function FormPage({ onBack, currentUser, onSubmitted }: Props) {
       <div className="card" style={{ marginTop: 14 }}>
         <div className="h2">Request Details</div>
 
-        <div
-          style={{
-            marginTop: 12,
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 12,
-          }}
-        >
+        <div className="formGrid">
           <Input
             label="Parent/Guardian Full Name"
             value={form.parentName}
@@ -214,7 +207,7 @@ export default function FormPage({ onBack, currentUser, onSubmitted }: Props) {
             placeholder="e.g. iPad 9th Gen"
           />
 
-          <div style={{ gridColumn: "1 / -1" }}>
+          <div className="spanAll">
             <div
               className="p"
               style={{ margin: 0, fontWeight: 800, color: "var(--text)" }}
@@ -253,9 +246,7 @@ export default function FormPage({ onBack, currentUser, onSubmitted }: Props) {
         </div>
       </div>
 
-      <div className="footer">
-        © 2026 School System
-      </div>
+      <div className="footer">© 2026 School System</div>
     </div>
   );
 }

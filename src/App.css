@@ -195,3 +195,35 @@ th{
 @media (max-width: 920px){
   .stats{ grid-template-columns: 1fr; }
 }
+
+/* Form responsive helpers */
+.formGrid{
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.spanAll{
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 640px){
+  .topbar{
+    padding: 12px 14px;
+  }
+
+  .page{
+    padding: 0 12px 32px;
+    margin: 14px auto;
+  }
+
+  .input{
+    min-width: 0;
+    width: 100%;
+  }
+
+  .formGrid{
+    grid-template-columns: 1fr;
+  }
+}

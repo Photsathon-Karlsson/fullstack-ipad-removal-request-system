@@ -1,4 +1,9 @@
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:1337";
+// PRODUCTION: ให้ใช้ same-origin (base = "")
+// DEVELOPMENT: ถ้าไม่ตั้ง env ให้ยิง localhost:1337
+// ถ้าตั้ง VITE_API_BASE เป็น "" จะ "ไม่" โดน fallback เพราะใช้ ?? ไม่ใช้ ||
+const API_BASE =
+  (import.meta.env.VITE_API_BASE as string | undefined) ??
+  (import.meta.env.PROD ? "" : "http://localhost:1337");
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -8,10 +13,22 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   // พยายามอ่าน json (เผื่อ backend ส่ง error เป็น json)
   const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
+
+  let data: any = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      // ถ้า backend ส่ง HTML/ข้อความเปล่า จะไม่ให้โค้ดพังด้วย JSON.parse
+      data = null;
+    }
+  }
 
   if (!res.ok) {
-    const message = (data && (data.message || data.error)) || `HTTP ${res.status}`;
+    const message =
+      (data && (data.message || data.error)) ||
+      (text && text.slice(0, 200)) ||
+      `HTTP ${res.status}`;
     throw new Error(message);
   }
 

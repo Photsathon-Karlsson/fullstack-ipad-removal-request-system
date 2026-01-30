@@ -41,6 +41,11 @@ textarea {
   border-color: rgb(16, 185, 129);
 }
 
+/* กันการล้นจอแนวนอน (ช่วยบนมือถือ) */
+html, body {
+  overflow-x: hidden;
+}
+
 /* PRINT PDF – ONE PAGE A4
    Put this at the END of src/index.css */
 @media print {
